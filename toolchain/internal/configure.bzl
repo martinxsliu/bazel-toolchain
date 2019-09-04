@@ -109,11 +109,8 @@ def llvm_register_toolchains():
     if not _download_llvm(rctx):
         _download_llvm_preconfigured(rctx)
 
-def conditional_cc_toolchain(name, darwin, absolute_paths = False):
+def conditional_cc_toolchain(name, toolchain_config, absolute_paths = False):
     # Toolchain macro for BUILD file to use conditional logic.
-
-    toolchain_config = "local_darwin" if darwin else "local_linux"
-    toolchain_identifier = "clang-darwin" if darwin else "clang-linux"
 
     if absolute_paths:
         _cc_toolchain(
@@ -124,11 +121,11 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
             linker_files = ":empty",
             objcopy_files = ":empty",
             strip_files = ":empty",
-            supports_param_files = 0 if darwin else 1,
+            supports_param_files = 0 if "darwin" in toolchain_config else 1,
             toolchain_config = toolchain_config,
         )
     else:
-        extra_files = [":cc_wrapper"] if darwin else []
+        extra_files = [":cc_wrapper"] if "darwin" in toolchain_config else []
         native.filegroup(name = name + "-all-files", srcs = [":all_components"] + extra_files)
         native.filegroup(name = name + "-archiver-files", srcs = [":ar"] + extra_files)
         native.filegroup(name = name + "-assembler-files", srcs = [":as"] + extra_files)
@@ -144,6 +141,6 @@ def conditional_cc_toolchain(name, darwin, absolute_paths = False):
             linker_files = name + "-linker-files",
             objcopy_files = ":objcopy",
             strip_files = ":empty",
-            supports_param_files = 0 if darwin else 1,
+            supports_param_files = 0 if "darwin" in toolchain_config else 1,
             toolchain_config = toolchain_config,
         )
